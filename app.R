@@ -13,7 +13,7 @@ library(shinycssloaders)
 # Source helper functions -----
 #source("helpers.R")
 
-dbases <- c("tabla12.sqlite", "tabla13.sqlite", "tabla14.sqlite", "tabla15.sqlite", "tabla16.sqlite", "tabla17.sqlite", "tabla18.sqlite", "season19.sqlite", "season20.sqlite")
+dbases <- c("season00.sqlite", "season01.sqlite","season02.sqlite","season03.sqlite","season04.sqlite","season05.sqlite","season06.sqlite","season07.sqlite","season08.sqlite","season09.sqlite","season10.sqlite","season11.sqlite","tabla12.sqlite", "tabla13.sqlite", "tabla14.sqlite", "tabla15.sqlite", "tabla16.sqlite", "tabla17.sqlite", "tabla18.sqlite", "season19.sqlite", "season20.sqlite")
 
 conTabla <- dbConnect(RSQLite::SQLite(), dbname=dbases[length(dbases)])
 queryRango <- dbGetQuery(conTabla, paste("SELECT DISTINCT Jornada FROM Partidos"))
@@ -21,7 +21,7 @@ finalRango <- queryRango$Jornada
 
 
 #for select in shiny
-torneos <- c(2012:2020)
+torneos <- c(2000:2020)
 jornadas <- (1:34)
 tempActual <- c(1:length(finalRango))
 lugares <- (1:18)
@@ -113,7 +113,7 @@ body <- dashboardBody(
     
     column(width = 3,
            box(width = NULL,status = "warning",
-               h5("Una herramienta interactiva para consultar datos sobre los torneos de la Bundesliga a partir de 2012."),
+               h5("Una herramienta interactiva para consultar datos sobre los torneos de la Bundesliga a partir de 2000."),
                selectInput("torneo",
                            label = "Seleccione el torneo:",
                            choices = c(torneos),selected = torneos[length(torneos)]
@@ -181,18 +181,43 @@ server <- function(input, output, session) {
     output$puntos <- renderPlotly(plot_ly(data= puntostodos, x= ~Jornada, y= ~Total_Puntos, color = ~Equipo, text= hovertextpuntos, hoverinfo="skip") %>% add_lines(line=list(shape="spline", smoothing = 1.0)) %>% layout(xaxis=c(a), showlegends=FALSE) %>% add_markers(x=puntostodos$Jornada, y=puntostodos$Total_Puntos, showlegend=FALSE, hoverinfo="text"))
     output$general <- renderDataTable(tcompleta, options = list(searching = FALSE, paging = FALSE, ordering = FALSE, info = FALSE))
     output$cuali <- renderUI({
-      tagList(
+      if(as.numeric(input$torneo) >=2020){
         
-        tags$p(),
-        tags$h2(paste("TABLA DE POSICIONES", " - TORNEO ", input$torneo, " - JORNADA ", input$jornada)),
-        #tags$h3("Competencias europeas y descenso"),
-        tags$h5(tags$span(class = "dotchampions"),"Sitio de Champions League"),
-        tags$h5(tags$span(class = "doteleague"), "Sitio de Liga Europa (clasificación)"),
-        tags$h5(tags$span(class = "dotrelegation"),"Repechaje primera división"),
-        tags$h5(tags$span(class = "dotabstieg"),"Descenso a segunda división")
-        
-      )
-    })
+        tagList(
+          tags$p(),
+          tags$style(HTML(".table-striped > tbody > tr:nth-of-type(7) {
+  background-color: green;
+  color: white;
+}")),
+          tags$h2(paste("TABLA DE POSICIONES", " - TORNEO ", input$torneo, " - JORNADA ", input$jornada)),
+          #tags$h3("Competencias europeas y descenso"),
+          tags$h5(tags$span(class = "dotchampions"),"Sitio de Champions League"),
+          tags$h5(tags$span(class = "doteleague"), "Sitio de Liga Europa (clasificación)"),
+          tags$h5(tags$span(class = "dotconference"), "Sitio de Liga Europa Conferencia"),
+          tags$h5(tags$span(class = "dotrelegation"),"Repechaje primera división"),
+          tags$h5(tags$span(class = "dotabstieg"),"Descenso a segunda división")
+        )
+      }
+      
+      else{
+        tagList(
+          tags$p(),
+          tags$style(HTML(".table-striped > tbody > tr:nth-of-type(7) {
+  background-color: white;
+  color: black;
+}")),
+          tags$h2(paste("TABLA DE POSICIONES", " - TORNEO ", input$torneo, " - JORNADA ", input$jornada)),
+          #tags$h3("Competencias europeas y descenso"),
+          tags$h5(tags$span(class = "dotchampions"),"Sitio de Champions League"),
+          tags$h5(tags$span(class = "doteleague"), "Sitio de Liga Europa (clasificación)"),
+          #tags$h5(tags$span(class = "dotconference"), "Sitio de Liga Europa Conferencia"),
+          tags$h5(tags$span(class = "dotrelegation"),"Repechaje primera división"),
+          tags$h5(tags$span(class = "dotabstieg"),"Descenso a segunda división")
+        )
+      }
+    }
+    )
+    
   }
   )
 }
@@ -204,4 +229,3 @@ shinyApp(ui = dashboardPage(skin="red",
                             body
                             
 ), server = server)
-
